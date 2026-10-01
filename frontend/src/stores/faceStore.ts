@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia';
 import { db, toPlain } from '../utils/db';
 import { newId } from '../utils/id';
+import { makeMeta } from '../utils/device';
 import type { TunnelFace, TunnelFaceDraft } from '../types/face';
 
 interface FaceState {
@@ -23,7 +24,7 @@ export const useFaceStore = defineStore('face', {
       this.loaded = true;
     },
     async add(draft: TunnelFaceDraft) {
-      const record: TunnelFace = { ...toPlain(draft), id: newId('face'), recordedAt: Date.now() };
+      const record: TunnelFace = { ...toPlain(draft), id: newId('face'), recordedAt: Date.now(), meta: makeMeta('face') };
       await db.faces.put(toPlain(record));
       this.items = [...this.items, record].sort((a, b) => b.chainage - a.chainage);
       return record;
@@ -45,7 +46,7 @@ export const useFaceStore = defineStore('face', {
         .filter((it) => it.chainage < current.chainage)
         .sort((a, b) => b.chainage - a.chainage)[0];
       if (!prev) return undefined;
-      const { id: _omit, recordedAt: _omit2, ...draft } = prev;
+      const { id: _omit, recordedAt: _omit2, meta: _omit3, ...draft } = prev;
       return toPlain(draft);
     },
   },

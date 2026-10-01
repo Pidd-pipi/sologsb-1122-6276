@@ -3,10 +3,12 @@ import type { TunnelFace } from '../types/face';
 import type { JointSet } from '../types/joint';
 import type { RockMassGrade } from '../types/grade';
 import type { WaterInflow } from '../types/water';
+import type { ArchivedVersion } from '../types/merge';
 import { newId } from './id';
+import { seedMeta } from './device';
 
 export const DB_NAME = 'gbtunnelface';
-export const DB_VERSION = 2;
+export const DB_VERSION = 3;
 export const LS_VERSION_KEY = 'gbtunnelface:db-version';
 
 class TunnelFaceDB extends Dexie {
@@ -14,6 +16,7 @@ class TunnelFaceDB extends Dexie {
   joints!: Table<JointSet, string>;
   grades!: Table<RockMassGrade, string>;
   waters!: Table<WaterInflow, string>;
+  archive!: Table<ArchivedVersion, string>;
 
   constructor() {
     super(DB_NAME);
@@ -51,6 +54,27 @@ class TunnelFaceDB extends Dexie {
           .modify((row: any) => {
             if (row.chainage === undefined) row.chainage = 0;
           });
+      });
+    this.version(3)
+      .stores({
+        faces: 'id, faceNo, chainage, lithology, excavationMethod, weathering, recordedAt',
+        joints: 'id, faceId, setNo, dipDirection, dipAngle, fillMaterial',
+        grades: 'id, faceId, grade, judgedAt, bqValue',
+        waters: 'id, faceId, chainage, type, changeTrend',
+        archive: 'id, entityType, entityUid, archivedAt',
+      })
+      .upgrade(async (tx) => {
+        // 为存量记录补跨设备认领元信息（uid 由表名+id 确定性生成，同源设备可互相认领）
+        for (const table of ['faces', 'joints', 'grades', 'waters'] as const) {
+          await tx
+            .table(table)
+            .toCollection()
+            .modify((row: any) => {
+              if (!row.meta) {
+                row.meta = { uid: `${table}-${row.id}`, source: 'legacy', seq: 0 };
+              }
+            });
+        }
       });
   }
 }
@@ -108,6 +132,7 @@ export async function ensureSeedData(): Promise<void> {
       attitude: { strike: 42, dipDirection: 132, dipAngle: 34 },
       recordedAt: now - 2 * day,
       geologist: '岑柏川',
+      meta: seedMeta('face', 1),
     },
     {
       id: face2,
@@ -122,6 +147,7 @@ export async function ensureSeedData(): Promise<void> {
       attitude: { strike: 48, dipDirection: 138, dipAngle: 28 },
       recordedAt: now - 6 * hour,
       geologist: '岑柏川',
+      meta: seedMeta('face', 2),
     },
   ];
 
@@ -139,6 +165,7 @@ export async function ensureSeedData(): Promise<void> {
       roughness: '粗糙',
       waterWet: '潮湿',
       jointCount: 9,
+      meta: seedMeta('joint', 1),
     },
     {
       id: newId('joint'),
@@ -153,6 +180,7 @@ export async function ensureSeedData(): Promise<void> {
       roughness: '平整',
       waterWet: '滴水',
       jointCount: 5,
+      meta: seedMeta('joint', 2),
     },
     {
       id: newId('joint'),
@@ -167,6 +195,7 @@ export async function ensureSeedData(): Promise<void> {
       roughness: '起伏粗糙',
       waterWet: '干燥',
       jointCount: 12,
+      meta: seedMeta('joint', 3),
     },
     {
       id: newId('joint'),
@@ -181,6 +210,7 @@ export async function ensureSeedData(): Promise<void> {
       roughness: '平直光滑',
       waterWet: '线流',
       jointCount: 4,
+      meta: seedMeta('joint', 4),
     },
   ];
 
@@ -200,6 +230,7 @@ export async function ensureSeedData(): Promise<void> {
       supportSuggestion: '系统锚杆（φ25，L=3.0 m，间距 1.0 m）+ 喷射混凝土 12 cm + 钢筋网',
       manualAdjusted: false,
       judgedAt: now - 2 * day,
+      meta: seedMeta('grade', 1),
     },
   ];
 
@@ -215,6 +246,7 @@ export async function ensureSeedData(): Promise<void> {
       changeTrend: '稳定',
       measuredAt: now - 2 * day,
       chainage: 12478,
+      meta: seedMeta('water', 1),
     },
     {
       id: newId('water'),
@@ -227,6 +259,7 @@ export async function ensureSeedData(): Promise<void> {
       changeTrend: '增大',
       measuredAt: now - day,
       chainage: 12481,
+      meta: seedMeta('water', 2),
     },
     {
       id: newId('water'),
@@ -239,6 +272,7 @@ export async function ensureSeedData(): Promise<void> {
       changeTrend: '突增',
       measuredAt: now - 4 * hour,
       chainage: 12484,
+      meta: seedMeta('water', 3),
     },
   ];
 

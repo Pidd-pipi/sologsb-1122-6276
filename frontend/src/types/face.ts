@@ -23,7 +23,7 @@ export interface Attitude {
 /** 隧道掌子面编录档案 */
 export interface TunnelFace {
   id: string;
-  /** 掌子面编号 */
+  /** 掌子面编号（跨设备认领的稳定业务编号） */
   faceNo: string;
   /** 里程桩号（米） */
   chainage: number;
@@ -39,6 +39,8 @@ export interface TunnelFace {
   attitude: Attitude;
   recordedAt: number;
   geologist: string;
+  /** 跨设备认领元信息 */
+  meta: import('./merge').MergeMeta;
 }
 
-export type TunnelFaceDraft = Omit<TunnelFace, 'id' | 'recordedAt'>;
+export type TunnelFaceDraft = Omit<TunnelFace, 'id' | 'recordedAt' | 'meta'>;

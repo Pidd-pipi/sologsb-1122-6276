@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia';
 import { db, toPlain } from '../utils/db';
 import { newId } from '../utils/id';
+import { makeMeta } from '../utils/device';
 import type { RockMassGrade, RockMassGradeDraft } from '../types/grade';
 import type { WaterInflow, WaterInflowDraft } from '../types/water';
 
@@ -29,13 +30,13 @@ export const useGradeStore = defineStore('grade', {
       this.loaded = true;
     },
     async addGrade(draft: RockMassGradeDraft) {
-      const record: RockMassGrade = { ...toPlain(draft), id: newId('grade'), judgedAt: Date.now() };
+      const record: RockMassGrade = { ...toPlain(draft), id: newId('grade'), judgedAt: Date.now(), meta: makeMeta('grade') };
       await db.grades.put(toPlain(record));
       this.items = [record, ...this.items];
       return record;
     },
     async addWater(draft: WaterInflowDraft) {
-      const record: WaterInflow = { ...toPlain(draft), id: newId('water'), measuredAt: Date.now() };
+      const record: WaterInflow = { ...toPlain(draft), id: newId('water'), measuredAt: Date.now(), meta: makeMeta('water') };
       await db.waters.put(toPlain(record));
       this.waters = [...this.waters, record].sort((a, b) => a.chainage - b.chainage);
       return record;

@@ -216,6 +216,11 @@ onMounted(async () => {
             <el-table-column prop="roughness" label="粗糙度" width="110" />
             <el-table-column prop="waterWet" label="渗水" width="90" />
             <el-table-column prop="jointCount" label="条数" width="80" />
+            <el-table-column label="来源" width="100">
+              <template #default="{ row }">
+                <el-tag size="small" effect="plain">{{ row.meta?.source ?? '—' }}</el-tag>
+              </template>
+            </el-table-column>
             <el-table-column label="操作" width="90">
               <template #default="{ row }">
                 <el-button size="small" danger @click="jointStore.remove(row.id)">删除</el-button>

@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia';
 import { db, toPlain } from '../utils/db';
 import { newId } from '../utils/id';
+import { makeMeta } from '../utils/device';
 import type { JointSet, JointSetDraft } from '../types/joint';
 
 interface JointState {
@@ -22,7 +23,7 @@ export const useJointStore = defineStore('joint', {
       this.loaded = true;
     },
     async add(draft: JointSetDraft) {
-      const record: JointSet = { ...toPlain(draft), id: newId('joint') };
+      const record: JointSet = { ...toPlain(draft), id: newId('joint'), meta: makeMeta('joint') };
       await db.joints.put(toPlain(record));
       this.items = [...this.items, record];
       return record;

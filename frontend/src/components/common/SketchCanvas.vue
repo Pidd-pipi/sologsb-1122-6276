@@ -1,21 +1,8 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue';
 import type { Attitude } from '../../types/face';
-
-export interface SketchSegment {
-  id: string;
-  /** 线中点 x（视图坐标） */
-  x: number;
-  /** 线中点 y（视图坐标） */
-  y: number;
-  /** 结构面倾角 ° */
-  dipAngle: number;
-  /** 结构面倾向 ° */
-  dipDirection: number;
-  /** 线长（视图坐标） */
-  length: number;
-  label: string;
-}
+import type { SketchSegment } from '../../types/sketch';
+import { getDevice, nextSeq } from '../../utils/device';
 
 const props = defineProps<{
   faceId: string;
@@ -94,6 +81,8 @@ function onClick(e: MouseEvent) {
       dipDirection,
       length: 56,
       label: `J${index} ${Math.round(dipDirection)}°∠${Math.round(dipAngle)}°`,
+      source: getDevice().name,
+      seq: nextSeq('sketch'),
     },
   ];
   persist();

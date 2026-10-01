@@ -6,10 +6,12 @@ import 'element-plus/dist/index.css';
 import App from './App.vue';
 import router from './router';
 import { ensureSeedData, markDbVersion } from './utils/db';
+import { ensureBaseSnapshot } from './utils/merge';
 
 async function bootstrap() {
   // 先完成 IndexedDB 迁移与示范数据灌入，再挂载应用
   await ensureSeedData();
+  await ensureBaseSnapshot();
   markDbVersion();
 
   const app = createApp(App);

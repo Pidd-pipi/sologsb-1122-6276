@@ -33,9 +33,15 @@ export interface RockMassGrade {
   /** 是否人工修正级别 */
   manualAdjusted: boolean;
   judgedAt: number;
+  /** 跨设备认领元信息 */
+  meta: import('./merge').MergeMeta;
+  /** 是否由交接合并依据最新节理/涌水数据重算 */
+  recomputedByMerge?: boolean;
+  /** 重算来源设备 */
+  mergeSource?: string;
 }
 
-export type RockMassGradeDraft = Omit<RockMassGrade, 'id' | 'judgedAt'>;
+export type RockMassGradeDraft = Omit<RockMassGrade, 'id' | 'judgedAt' | 'meta'>;
 
 /** 级别色带（用于 <GradeTag>） */
 export const GRADE_COLOR: Record<RockGrade, string> = {

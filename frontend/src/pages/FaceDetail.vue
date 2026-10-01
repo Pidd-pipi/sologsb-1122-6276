@@ -87,6 +87,10 @@ onMounted(async () => {
               走向 {{ face.attitude.strike }}° · {{ attitudeText(face.attitude.dipDirection, face.attitude.dipAngle) }}
             </el-descriptions-item>
             <el-descriptions-item label="地质员">{{ face.geologist }}</el-descriptions-item>
+            <el-descriptions-item label="编录来源">
+              <el-tag size="small" effect="plain">{{ face.meta?.source ?? '—' }}</el-tag>
+              <span v-if="face.meta?.seq" class="muted">（顺序 #{{ face.meta.seq }}）</span>
+            </el-descriptions-item>
             <el-descriptions-item label="编录时间">
               {{ new Date(face.recordedAt).toLocaleString('zh-CN') }}
             </el-descriptions-item>

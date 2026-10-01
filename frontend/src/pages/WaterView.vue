@@ -215,6 +215,11 @@ onMounted(async () => {
             <el-table-column prop="waterTemp" label="水温" width="80" />
             <el-table-column prop="waterPressure" label="水压" width="80" />
             <el-table-column prop="changeTrend" label="趋势" width="90" />
+            <el-table-column label="来源" width="100">
+              <template #default="{ row }">
+                <el-tag size="small" effect="plain">{{ row.meta?.source ?? '—' }}</el-tag>
+              </template>
+            </el-table-column>
             <el-table-column label="操作" width="90">
               <template #default="{ row }">
                 <el-button size="small" danger @click="gradeStore.removeWater(row.id)">删除</el-button>

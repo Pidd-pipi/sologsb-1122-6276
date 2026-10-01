@@ -172,6 +172,12 @@ onMounted(async () => {
             <el-table-column label="修正" width="80">
               <template #default="{ row }">{{ row.manualAdjusted ? '人工' : '自动' }}</template>
             </el-table-column>
+            <el-table-column label="来源" width="110">
+              <template #default="{ row }">
+                <el-tag v-if="row.recomputedByMerge" size="small" type="warning">合并重算</el-tag>
+                <el-tag v-else size="small" effect="plain">{{ row.meta?.source ?? '—' }}</el-tag>
+              </template>
+            </el-table-column>
           </el-table>
           <el-empty v-if="history.length === 0" description="尚无历史判定" :image-size="60" />
         </el-card>

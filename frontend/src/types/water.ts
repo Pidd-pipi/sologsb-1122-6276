@@ -25,9 +25,11 @@ export interface WaterInflow {
   measuredAt: number;
   /** 沿里程位置（米），用于趋势折线 */
   chainage: number;
+  /** 跨设备认领元信息 */
+  meta: import('./merge').MergeMeta;
 }
 
-export type WaterInflowDraft = Omit<WaterInflow, 'id' | 'measuredAt'>;
+export type WaterInflowDraft = Omit<WaterInflow, 'id' | 'measuredAt' | 'meta'>;
 
 /** 是否突变点（趋势突增或涌水量超过阈值） */
 export function isSurge(point: WaterInflow, all: WaterInflow[]): boolean {
