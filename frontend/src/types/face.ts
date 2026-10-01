@@ -1,4 +1,6 @@
 /** 开挖方法 */
+import type { RecordProvenance } from './sync';
+
 export type ExcavationMethod = '全断面' | '台阶法' | 'CD 法';
 
 export const EXCAVATION_METHODS: ExcavationMethod[] = ['全断面', '台阶法', 'CD 法'];
@@ -39,6 +41,8 @@ export interface TunnelFace {
   attitude: Attitude;
   recordedAt: number;
   geologist: string;
+  /** 离线合并的来源与顺序信息 */
+  provenance?: RecordProvenance;
 }
 
 export type TunnelFaceDraft = Omit<TunnelFace, 'id' | 'recordedAt'>;

@@ -123,6 +123,14 @@ onMounted(async () => {
             <el-table-column prop="fillMaterial" label="充填" width="90" />
             <el-table-column prop="waterWet" label="渗水" width="90" />
             <el-table-column prop="jointCount" label="条数" width="80" />
+            <el-table-column label="来源" min-width="120">
+              <template #default="{ row }">
+                <el-tag v-if="row.provenance?.sourceDeviceName" size="small" type="success">
+                  {{ row.provenance.sourceDeviceName }}
+                </el-tag>
+                <span v-else class="muted">本机</span>
+              </template>
+            </el-table-column>
           </el-table>
           <el-empty v-if="joints.length === 0" description="暂无节理组记录" :image-size="60" />
         </el-card>

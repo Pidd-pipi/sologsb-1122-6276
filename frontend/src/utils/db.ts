@@ -3,10 +3,11 @@ import type { TunnelFace } from '../types/face';
 import type { JointSet } from '../types/joint';
 import type { RockMassGrade } from '../types/grade';
 import type { WaterInflow } from '../types/water';
+import type { ArchiveEntry, MergeBase, MergeSession } from '../types/sync';
 import { newId } from './id';
 
 export const DB_NAME = 'gbtunnelface';
-export const DB_VERSION = 2;
+export const DB_VERSION = 3;
 export const LS_VERSION_KEY = 'gbtunnelface:db-version';
 
 class TunnelFaceDB extends Dexie {
@@ -14,6 +15,9 @@ class TunnelFaceDB extends Dexie {
   joints!: Table<JointSet, string>;
   grades!: Table<RockMassGrade, string>;
   waters!: Table<WaterInflow, string>;
+  archives!: Table<ArchiveEntry, string>;
+  mergeSessions!: Table<MergeSession, string>;
+  mergeBases!: Table<MergeBase, string>;
 
   constructor() {
     super(DB_NAME);
@@ -52,6 +56,16 @@ class TunnelFaceDB extends Dexie {
             if (row.chainage === undefined) row.chainage = 0;
           });
       });
+    // v3：离线交接合并所需的归档、会话与同步基线表
+    this.version(3).stores({
+      faces: 'id, faceNo, chainage, lithology, excavationMethod, weathering, recordedAt',
+      joints: 'id, faceId, setNo, dipDirection, dipAngle, fillMaterial',
+      grades: 'id, faceId, grade, judgedAt, bqValue',
+      waters: 'id, faceId, chainage, type, changeTrend',
+      archives: 'id, kind, faceNo, sessionId, entityTable, archivedAt',
+      mergeSessions: 'id, status, peerDeviceId, finishedAt',
+      mergeBases: 'id, faceNo, peerDeviceId, updatedAt',
+    });
   }
 }
 

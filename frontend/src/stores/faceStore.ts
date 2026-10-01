@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia';
 import { db, toPlain } from '../utils/db';
 import { newId } from '../utils/id';
+import { stampProvenance, touchProvenance } from '../utils/device';
 import type { TunnelFace, TunnelFaceDraft } from '../types/face';
 
 interface FaceState {
@@ -23,13 +24,19 @@ export const useFaceStore = defineStore('face', {
       this.loaded = true;
     },
     async add(draft: TunnelFaceDraft) {
-      const record: TunnelFace = { ...toPlain(draft), id: newId('face'), recordedAt: Date.now() };
+      const record: TunnelFace = {
+        ...toPlain(draft),
+        id: newId('face'),
+        recordedAt: Date.now(),
+        provenance: stampProvenance(),
+      };
       await db.faces.put(toPlain(record));
       this.items = [...this.items, record].sort((a, b) => b.chainage - a.chainage);
       return record;
     },
     async update(id: string, patch: Partial<TunnelFace>) {
-      const plain = toPlain(patch);
+      const current = this.items.find((it) => it.id === id);
+      const plain = toPlain({ ...patch, provenance: touchProvenance(current?.provenance) });
       await db.faces.update(id, plain);
       this.items = this.items.map((it) => (it.id === id ? { ...it, ...plain } : it));
     },
@@ -38,8 +45,7 @@ export const useFaceStore = defineStore('face', {
       this.items = this.items.filter((it) => it.id !== id);
     },
     /** 复制上一循环（里程更小的最近一个掌子面）的信息作为草稿 */
-    previousDraft(id: string): TunnelFaceDraft | undefined {
-      const current = this.items.find((it) => it.id === id);
+    previousDraft(id: string): TunnelFaceDraft | undefined {      const current = this.items.find((it) => it.id === id);
       if (!current) return undefined;
       const prev = [...this.items]
         .filter((it) => it.chainage < current.chainage)

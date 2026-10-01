@@ -1,21 +1,13 @@
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from 'vue';
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 import type { Attitude } from '../../types/face';
+import type { SketchSegmentPayload } from '../../types/sync';
+import { stampProvenance } from '../../utils/device';
+import { MERGE_EVENT } from '../../utils/handover';
+import { loadSketch, saveSketch } from '../../utils/sketchStore';
 
-export interface SketchSegment {
-  id: string;
-  /** 线中点 x（视图坐标） */
-  x: number;
-  /** 线中点 y（视图坐标） */
-  y: number;
-  /** 结构面倾角 ° */
-  dipAngle: number;
-  /** 结构面倾向 ° */
-  dipDirection: number;
-  /** 线长（视图坐标） */
-  length: number;
-  label: string;
-}
+/** 组件对外抛出的线段类型，含离线来源字段 */
+export type SketchSegment = SketchSegmentPayload;
 
 const props = defineProps<{
   faceId: string;
@@ -30,10 +22,8 @@ const emit = defineEmits<{
 }>();
 
 const VB = { w: 660, h: 380 };
-const segments = ref<SketchSegment[]>([]);
+const segments = ref<SketchSegmentPayload[]>([]);
 const selectedId = ref('');
-
-const storageKey = computed(() => `gbtunnelface:sketch:${props.faceId}`);
 
 /** 岩性填充纹样：按岩性选择不同 SVG pattern */
 const patternId = computed(() => {
@@ -57,17 +47,12 @@ const patternLabel = computed(() => {
 });
 
 function load() {
-  try {
-    const raw = window.localStorage.getItem(storageKey.value);
-    segments.value = raw ? (JSON.parse(raw) as SketchSegment[]) : [];
-  } catch {
-    segments.value = [];
-  }
+  segments.value = loadSketch(props.faceId);
 }
 
 function persist() {
   try {
-    window.localStorage.setItem(storageKey.value, JSON.stringify(segments.value));
+    saveSketch(props.faceId, segments.value);
   } catch {
     /* 忽略存储失败 */
   }
@@ -84,16 +69,20 @@ function onClick(e: MouseEvent) {
   const dipAngle = props.attitude.dipAngle;
   const dipDirection = props.attitude.dipDirection;
   const index = segments.value.length + 1;
+  const provenance = stampProvenance();
   segments.value = [
     ...segments.value,
     {
-      id: `seg_${Date.now().toString(36)}${index}`,
+      id: `seg_${provenance.seq ?? Date.now().toString(36)}_${index}`,
       x,
       y,
       dipAngle,
       dipDirection,
       length: 56,
       label: `J${index} ${Math.round(dipDirection)}°∠${Math.round(dipAngle)}°`,
+      sourceDeviceId: provenance.sourceDeviceId,
+      sourceDeviceName: provenance.sourceDeviceName,
+      seq: provenance.seq,
     },
   ];
   persist();
@@ -124,9 +113,15 @@ function tickOf(seg: SketchSegment) {
   return { x: seg.x + nx * 10, y: seg.y + ny * 10 };
 }
 
+function onMerged() {
+  load();
+  emit('change', segments.value);
+}
+
 onMounted(load);
+onMounted(() => window.addEventListener(MERGE_EVENT, onMerged));
+onUnmounted(() => window.removeEventListener(MERGE_EVENT, onMerged));
 watch(() => props.faceId, load);
-watch(storageKey, persist);
 </script>
 
 <template>
@@ -219,9 +214,11 @@ watch(storageKey, persist);
     </svg>
 
     <div v-if="segments.length > 0" class="legend">
-      <el-tag v-for="seg in segments" :key="seg.id" size="small" :type="selectedId === seg.id ? 'danger' : 'info'">
-        {{ seg.label }} @ ({{ seg.x }}, {{ seg.y }})
-      </el-tag>
+      <el-tooltip v-for="seg in segments" :key="seg.id" :content="`来源：${seg.sourceDeviceName ?? '本机旧记录'}`" placement="top">
+        <el-tag size="small" :type="selectedId === seg.id ? 'danger' : seg.sourceDeviceName ? 'success' : 'info'">
+          {{ seg.label }} @ ({{ seg.x }}, {{ seg.y }})
+        </el-tag>
+      </el-tooltip>
     </div>
   </div>
 </template>

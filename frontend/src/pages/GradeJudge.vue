@@ -172,8 +172,20 @@ onMounted(async () => {
             <el-table-column label="修正" width="80">
               <template #default="{ row }">{{ row.manualAdjusted ? '人工' : '自动' }}</template>
             </el-table-column>
+            <el-table-column label="来源" width="110">
+              <template #default="{ row }">
+                <el-tag v-if="row.recomputedAfterMerge" size="small" type="warning">合并重算</el-tag>
+                <el-tag v-else-if="row.provenance?.sourceDeviceName" size="small" type="success">
+                  {{ row.provenance.sourceDeviceName }}
+                </el-tag>
+                <span v-else class="muted">本机</span>
+              </template>
+            </el-table-column>
           </el-table>
           <el-empty v-if="history.length === 0" description="尚无历史判定" :image-size="60" />
+          <p class="muted" style="margin-top: 6px">
+            合并重算前的旧判定可在「离线交接 → 交接记录 → 落选版本 / 旧判定归档」中查阅。
+          </p>
         </el-card>
 
         <el-card v-if="face" shadow="never">

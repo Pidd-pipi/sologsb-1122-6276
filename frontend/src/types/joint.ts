@@ -1,4 +1,6 @@
 /** 充填物 */
+import type { RecordProvenance } from './sync';
+
 export type FillMaterial = '方解石' | '泥质' | '无';
 
 export const FILL_MATERIALS: FillMaterial[] = ['方解石', '泥质', '无'];
@@ -34,6 +36,8 @@ export interface JointSet {
   waterWet: WaterWet;
   /** 条数 */
   jointCount: number;
+  /** 离线合并的来源与顺序信息 */
+  provenance?: RecordProvenance;
 }
 
 export type JointSetDraft = Omit<JointSet, 'id'>;

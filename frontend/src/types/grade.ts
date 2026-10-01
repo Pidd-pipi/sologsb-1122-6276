@@ -1,4 +1,6 @@
 /** 围岩级别 Ⅰ ~ Ⅵ */
+import type { RecordProvenance } from './sync';
+
 export type RockGrade = 'Ⅰ' | 'Ⅱ' | 'Ⅲ' | 'Ⅳ' | 'Ⅴ' | 'Ⅵ';
 
 export const ROCK_GRADES: RockGrade[] = ['Ⅰ', 'Ⅱ', 'Ⅲ', 'Ⅳ', 'Ⅴ', 'Ⅵ'];
@@ -33,6 +35,12 @@ export interface RockMassGrade {
   /** 是否人工修正级别 */
   manualAdjusted: boolean;
   judgedAt: number;
+  /** 离线合并的来源与顺序信息 */
+  provenance?: RecordProvenance;
+  /** 合并后自动重算标记 */
+  recomputedAfterMerge?: boolean;
+  /** 被本记录替换的旧判定 id */
+  supersedesGradeIds?: string[];
 }
 
 export type RockMassGradeDraft = Omit<RockMassGrade, 'id' | 'judgedAt'>;

@@ -1,4 +1,6 @@
 /** 出水类型 */
+import type { RecordProvenance } from './sync';
+
 export type InflowType = '渗水' | '滴水' | '线流' | '股状';
 
 export const INFLOW_TYPES: InflowType[] = ['渗水', '滴水', '线流', '股状'];
@@ -25,6 +27,8 @@ export interface WaterInflow {
   measuredAt: number;
   /** 沿里程位置（米），用于趋势折线 */
   chainage: number;
+  /** 离线合并的来源与顺序信息 */
+  provenance?: RecordProvenance;
 }
 
 export type WaterInflowDraft = Omit<WaterInflow, 'id' | 'measuredAt'>;
